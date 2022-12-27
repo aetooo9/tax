@@ -1,18 +1,23 @@
-
 <?php
 
-$servername = "";
-$username = "";
-$password = "";
-$db = "";
 
+$host="localhost";
+$User="root";
+$password="";
+$db="tax";
 
 // Create connection
-$conn = new mysqli($servername, $username, $password, $db);
+$conn = new mysqli($host, $User, $password, $db);
 
-if($conn->error-connection){
-   echo "error connction !!";
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
+
+$conn->set_charset("utf8");
+
+error_reporting(0);
+
 
 
 ?>
