@@ -8,15 +8,19 @@ if (isset($_POST['login'])){
     $UserName = $_POST['UserName'];
     $Password = $_POST['Password'];
 
-    $q = "select * from users where UserName='".$UserName."' and Password='".$Password."'";
-    $r = $conn->query($q);
+    $q = "select count(1) as num_rows from users where user_name=? and password=?";
+    $r = $conn->prepare($q);
+    $r->bind_param("ss", $UserName, $Password);
+    $r->execute();
+    $rr = $r->get_result();
+    $row = $rr->fetch_assoc();
 
-    $n = $r->num_rows();
 
-    if($n > 0){
-        echo "UserName and Password is correct";
+
+    if($row['num_rows'] > 0){
+        echo "<script>location.href='home';</script>";
     }else { 
-        echo "UserName and Password is incorrect";
+        $msg = "UserName and Password is incorrect";
     }
 
 }
@@ -40,10 +44,11 @@ if (isset($_POST['login'])){
     <h1>Login Screen</h1> 
     <img src="./img/login.png" width="100" height="100" alt="login icon" title="login icon">
     <form method="post"  action="index.php">
+        <?php echo $msg; ?>
         <table class="login" >
             <tr>
                 <td>Email</td>
-                <td><input type="email" name="UserName" placeholder="Email"></td>
+                <td><input type="text" name="UserName" placeholder="UserName"></td>
             </tr>
             <tr>
                 <td>Password</td>
