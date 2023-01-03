@@ -1,4 +1,12 @@
 <?php
+session_start();
+
+echo $_SESSION['user_name'];
+
+if($_SESSION['status']<>1){
+
+    echo "<script>location.href='index.php';</script>";
+}
 
 require "conn.php";
 
@@ -23,10 +31,22 @@ if (isset($_POST['Add'])){
     $password = $_POST['password'];
     $phone = $_POST['phone'];
     $address = $_POST['address'];
+    $user_insert = $_SESSION['user_id'];
 
-    $q = "insert into users(user_name,password,phone,address) values (?, ?, ?, ?)";
+    $path = "./img/";
+
+    $temp = explode(".", $_FILES["img"]["name"]);
+
+    $newfilename =  $user_name . '.' . end($temp);
+
+    $path = $path . $newfilename;
+
+    move_uploaded_file($_FILES['img']['tmp_name'],$path);
+
+
+    $q = "insert into users(user_name,password,phone,address, img, user_insert) values (?, ?, ?, ?, ?, ?)";
     $r = $conn->prepare($q);
-    $r->bind_param("ssis", $user_name, $password, $phone, $address);
+    $r->bind_param("ssissi", $user_name, $password, $phone, $address, $path, $user_insert);
     $e = $r->execute();
 
     if($e){
@@ -43,10 +63,21 @@ if (isset($_POST['Edit'])){
     $password = $_POST['password'];
     $phone = $_POST['phone'];
     $address = $_POST['address'];
+    $user_edit = $_SESSION['user_id'];
 
-    $sql = "update users set user_name= ?, password=?, phone=?, address=? where user_id=?";
+    $path = "./img/";
+
+    $temp = explode(".", $_FILES["img"]["name"]);
+
+    $newfilename =  $user_name . '.' . end($temp);
+
+    $path = $path . $newfilename;
+
+    move_uploaded_file($_FILES['img']['tmp_name'],$path);
+
+    $sql = "update users set user_name= ?, password=?, phone=?, address=?, img=?, user_edit=? where user_id=?";
     $result = $conn->prepare($sql);
-    $result->bind_param("ssisi", $user_name, $password, $phone, $address, $user_id);
+    $result->bind_param("ssissii", $user_name, $password, $phone, $address, $path, $user_edit, $user_id);
     $e = $result->execute();
     
     if($e){
@@ -78,14 +109,7 @@ if(!empty($_GET['duser_id'])){
 <!DOCTYPE html>
 <html>
 
-<head>
-<title>Home Page</title>
-<meta charset="UTF-8">
-<meta name="descrption" contant="My First Page">
-<meta name="kewords" contant="My, First, Page">
-
-<link href="./css/style.css" rel="stylesheet">
-</head>
+<?php include('head.html'); ?>
 
 <body>
 <div class="header">
@@ -95,11 +119,12 @@ if(!empty($_GET['duser_id'])){
 <div class="page">
 <a href="home.php">Home</a>
 <a href="users.php">Users</a>
+<a href="logout.php">logout</a>
 </div>
 
 <div class="page">
     <div class="left">
-        <form method="post" action="home.php">
+        <form method="post" action="home.php" enctype="multipart/form-data">
             <?php echo $msg; ?>
         <table>
             <input type="hidden" name="user_id" value="<?php echo $UserRow['user_id']; ?>">
@@ -118,6 +143,10 @@ if(!empty($_GET['duser_id'])){
         <tr>
             <td>Address</td>
             <td><textarea cols="20" rows="7" name="address"><?php echo $UserRow['address']; ?></textarea></td>
+        </tr>
+        <tr>
+            <td>Image</td>
+            <td><input type="file" name="img" multiple></td>
         </tr>
         <tr>
             <td colspan="2">
@@ -141,13 +170,14 @@ if(!empty($_GET['duser_id'])){
 
         </div>
         <div class="right">
-          <table class="table">
+          <table class="table table-striped">
             <tr>
             <th>#</th>
             <th>User Name</th>
             <th>Password</th>
             <th>Phone</th>
             <th>Address</th>
+            <th>Image</th>
             <th>Edit</th>
             <th>Delete</th>
             </tr>
@@ -165,6 +195,11 @@ if(!empty($_GET['duser_id'])){
             <td><?php echo $row['password']; ?></td>
             <td><?php echo $row['phone']; ?></td>
             <td><?php echo $row['address']; ?></td>
+            <td>
+
+                <img class="zoom" src="<?php echo $row['img']; ?>" width="100" />
+
+            </td>
             <td><a class="btn btn2" href="home.php?user_id=<?php echo $row['user_id']; ?>">Edit</a></td>
             <td><a class="btn btn3" href="home.php?duser_id=<?php echo $row['user_id']; ?>">Delete</a></td>
             </tr>
